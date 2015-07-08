@@ -1,6 +1,5 @@
 <div>
 <label><b>Agent's Office</b></label>
-
 <span style="display:none;"><?php the_ID(); ?></span>
 </br>
 <select id="_office" name="_office"  required>

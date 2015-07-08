@@ -1,6 +1,5 @@
 <?php 
 function register_cpt_agent() {
- 
     $labels = array(
         'name' => _x( 'Agent', 'agent' ),
         'singular_name' => _x( 'Agent', 'agent' ),
@@ -15,7 +14,6 @@ function register_cpt_agent() {
         'parent_item_colon' => _x( 'Agent:', 'agent' ),
         'menu_name' => _x( 'Agents', 'agent' ),
     );
- 
     $args = array(
         'labels' => $labels,
         'hierarchical' => true,
@@ -36,27 +34,18 @@ function register_cpt_agent() {
         'rewrite' => true,
         'capability_type' => 'post'
     );
- 
     register_post_type( 'agent', $args );
 }
-
-
 // Add the agent Meta Boxes
-
 function add_agent_metaboxes() {
-
     add_meta_box('wpt_agent_details', 'Agent Details', 'wpt_agent_details', 'agent', 'normal', 'high');
 }
-
  // The agent Details Metabox
-
 function wpt_agent_details() {    
 	global $post;
-	
 	// Noncename needed to verify where the data originated
 	echo '<input type="hidden" name="eventmeta_noncename" id="eventmeta_noncename" value="' . 
 	wp_create_nonce( plugin_basename(__FILE__) ) . '" />';
-	
 	// Get the location data if its already been entered
 	$name = get_post_meta($post->ID, '_name', true);
 	$contact=get_post_meta($post->ID, '_contact', true);
@@ -69,10 +58,8 @@ function wpt_agent_details() {
 	$googlpls=get_post_meta($post->ID, '_googlpls', true);
 	$savvycrd=get_post_meta($post->ID, '_savvycrd', true);
 	$upldpic=get_post_meta($post->ID, '_upldpic', true);
-
 	// Echo out the field
 	?>
-	
 	<div>
 	<label><b>Agent's Name</b></label>
 	<input type="text"  name="_name" value="<?php echo $name ?> " class="widefat" required>
@@ -90,7 +77,6 @@ function wpt_agent_details() {
 <div>
 </br>
 <label><b>Agent's Office</b></label>
-
 <span style="display:none;"><?php the_ID(); ?></span>
 </br>
 <select id="_office" name="_office"  required>
@@ -104,7 +90,6 @@ query_posts('order=ASC&post_type=office');
  <?php endwhile; ?>
 </select>
 </div>
-
 <div>
 </br>
 <label><b>MLS ID</b></label>
@@ -140,20 +125,16 @@ query_posts('order=ASC&post_type=office');
 <label><b>Upload Picture URL</b></label>
 	<input type="file" id="_upldpic" name="_upldpic" value="Upload" class="widefat" style="width: 20%">
 </div>
-
 <?php
 }
 function save_agent_meta_data($id) {
- 
     /* --- security verification --- */
     if(!wp_verify_nonce($_POST['eventmeta_noncename'], plugin_basename(__FILE__))) {
       return $id;
     } // end if
-       
     if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
       return $id;
     } // end if
-       
     if('page' == $_POST['post_type']) {
       if(!current_user_can('edit_page', $id)) {
         return $id;
@@ -164,7 +145,6 @@ function save_agent_meta_data($id) {
         } // end if
     } // end if
     /* - end security verification - */
-     
     // Make sure the file array isn't empty
     if(!empty($_FILES['wpt_agent_details']['_upldpic'])) {
          
@@ -187,7 +167,6 @@ function save_agent_meta_data($id) {
                 add_post_meta($id, 'wpt_agent_details', $upload);
                 update_post_meta($id, 'wpt_agent_details', $upload);    
             } // end if/else
- 
         } else {
             wp_die("The file type that you've uploaded is not a PDF.");
         } // end if/else
@@ -197,32 +176,22 @@ function save_agent_meta_data($id) {
 } // end save_custom_meta_data
 
 add_action('save_post', 'save_agent_meta_data');
-
-
 function update_edit_form() {
     echo ' enctype="multipart/form-data"';
 } // end update_edit_form
 add_action('post_edit_form_tag', 'update_edit_form');
-
-
-
 //save all text fields 
-
 function wpt_save_agent_detail_meta($post_id, $post) {
-	
 	// verify this came from the our screen and with proper authorization,
 	// because save_post can be triggered at other times
 	if ( !wp_verify_nonce( $_POST['eventmeta_noncename'], plugin_basename(__FILE__) )) {
 	return $post->ID;
 	}
-
 	// Is the user allowed to edit the post or page?
 	if ( !current_user_can( 'edit_post', $post->ID ))
 		return $post->ID;
-
 	// OK, we're authenticated: we need to find and save the data
 	// We'll put it into an array to make it easier to loop though.
-	
 	$events_meta['_name'] = $_POST['_name'];
 	$events_meta['_contact'] = $_POST['_contact'];	
 	$events_meta['_email'] = $_POST['_email'];
@@ -234,10 +203,7 @@ function wpt_save_agent_detail_meta($post_id, $post) {
 	$events_meta['_googlpls'] = $_POST['_googlpls'];
 	$events_meta['_savvycrd'] = $_POST['_savvycrd'];
 	//$events_meta['_upldpic'] = $_POST['_upldpic'];
-	
-	
 	// Add values of $events_meta as custom fields
-	
 	foreach ($events_meta as $key => $value) { // Cycle through the $events_meta array!
 	//	if( $post->post_type == 'revision' ) return; // Don't store custom data twice
 		$value = implode(',', (array)$value); // If $value is an array, make it a CSV (unlikely)
@@ -248,14 +214,8 @@ function wpt_save_agent_detail_meta($post_id, $post) {
 		}
 		if(!$value) delete_post_meta($post->ID, $key); // Delete if blank
 	}
-
 }
-
-
 add_action('save_post', 'wpt_save_agent_detail_meta', 1, 2); // save the custom fields 
-
- 
 add_action( 'init', 'register_cpt_agent' );
 add_action( 'add_meta_boxes', 'add_agent_metaboxes');
-
 ?>
